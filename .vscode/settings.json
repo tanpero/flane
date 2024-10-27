@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "bigint.h": "c",
-        "stdio.h": "c",
-        "stdlib.h": "c",
-        "ctype.h": "c",
-        "vector.h": "c"
-    }
-}
