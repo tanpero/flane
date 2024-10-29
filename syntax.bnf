@@ -1,103 +1,117 @@
-<program> ::= <statement>*
+program ::= statement_list
 
-<statement> ::= <if_statement>
-             | <switch_statement>
-             | <while_statement>
-             | <for_statement>
-             | <break_statement>
-             | <continue_statement>
-             | <block_statement>
-             | <expression_statement>
-             | <declaration>
+statement_list ::= statement statement_list | ε
 
-<if_statement> ::= "if" "(" <expression> ")" <statement> ("else" <statement>)?
+statement ::= if_statement
+           | switch_statement
+           | while_statement
+           | for_statement
+           | break_statement
+           | continue_statement
+           | return_statement
+           | expression_statement
+           | block_statement
+           | variable_declaration
 
-<switch_statement> ::= "switch" "(" <expression> ")" "{" <switch_case>* "}"
+block_statement ::= "{" statement+ "}"
 
-<switch_case> ::= "case" <expression> ":" <statement>*
-                | "default" ":" <statement>*
+for_statement ::= "for" identifier : range statement
 
-<while_statement> ::= "while" "(" <expression> ")" <statement>
+range ::= "range" expression ".." expression
 
-<for_statement> ::= "for" "(" [<expression>] ";" [<expression>] ";" [<expression>] ")" <statement>
+match_statement ::= "match" expression "{" match_arms "}"
 
-<break_statement> ::= "break" ";"
+match_arms ::= match_arm ( match_arms )*
 
-<continue_statement> ::= "continue" ";"
+match_arm ::= pattern "->" expression_statement
 
-<block_statement> ::= "{" <statement>* "}"
+pattern ::= identifier | "_" | literal | range | tuple_pattern | list_pattern | guard
 
-<expression_statement> ::= <expression> ";"
+tuple_pattern ::= "(" pattern ("," pattern)* ")"
 
-<declaration> ::= "let" <identifier> ("=" <expression>)?
-                 | "const" <identifier> "=" <expression>
+list_pattern ::= "[" pattern ("," pattern)* "]"
 
-<expression> ::= <assignment_expression>
-              | <logical_expression>
+guard ::= "if" expression
 
-<assignment_expression> ::= <identifier> "=" <expression>
-                         | <identifier> "+=" <expression>
-                         | <identifier> "-=" <expression>
-                         | <identifier> "*=" <expression>
-                         | <identifier> "/=" <expression>
-                         | <identifier> "**=" <expression>
-                         | <identifier> "%=" <expression>
+list_comprehension ::= "[" expression "for" identifier "in" expression ("," expression)* "]"
 
-<logical_expression> ::= <equality_expression> ("||" <equality_expression>)*
+string ::= "'" character* "'" | "\"" character* "\"" | interpolation
 
-<equality_expression> ::= <relational_expression> ("==" <relational_expression>)*
-                      | <relational_expression> ("!=" <relational_expression>)*
+interpolation_string ::= "`" (interpolation | character)* "`""
 
-<relational_expression> ::= <additive_expression> ("<" <additive_expression>)*
-                         | <additive_expression> (">" <additive_expression>)*
-                         | <additive_expression> ("<=" <additive_expression>)*
-                         | <additive_expression> (">=" <additive_expression>)*
+interpolation ::= "${" expression "}"
 
-<additive_expression> ::= <multiplicative_expression> ("+" <multiplicative_expression>)*
-                      | <multiplicative_expression> ("-" <multiplicative_expression>)*
+expression_statement ::= expression
 
-<multiplicative_expression> ::= <exponent_expression> ("*" <exponent_expression>)*
-                            | <exponent_expression> ("/" <exponent_expression>)*
-                            | <exponent_expression> ("%" <exponent_expression>)*
+expression ::= assignment_expression | conditional_expression | arithmetic_expression | literal
 
-<exponent_expression> ::= <unary_expression> "**" <unary_expression>
+arithmetic_expression ::= term ("+" | "-") term*
+                      | term
 
-<unary_expression> ::= "+" <unary_expression>
-                   | "-" <unary_expression>
-                   | "!" <unary_expression>
-                   | <primary_expression>
+term ::= factor ("*" | "/" | "%") factor*
 
-<primary_expression> ::= <literal>
-                     | <identifier>
-                     | <object_literal>
-                     | <array_literal>
-                     | "(" <expression> ")"
+factor ::= ("-" | "+")? factor
+        | primary_expression
 
-<object_literal> ::= "{" (<property_assignment> ("," <property_assignment>)*)? "}"
+logical_expression ::= equality_expression ("&&" | "||") equality_expression*
 
-<property_assignment> ::= <identifier> ":" <expression>
+equality_expression ::= relational_expression ("==" | "!=") relational_expression*
 
-<array_literal> ::= "[" (<expression> ("," <expression>)*)? "]"
+relational_expression ::= shift_expression ("<" | ">" | "<=" | ">=") shift_expression*
 
-<arrow_function> ::= <parameter> "=>" <expression>
+shift_expression ::= additive_expression ("<<" | ">>") additive_expression*
 
-<parameter> ::= <identifier>
+additive_expression ::= multiplicative_expression ("+" | "-") multiplicative_expression*
 
-<identifier> ::= [a-zA-Z_$] [a-zA-Z0-9_$]*
+multiplicative_expression ::= exponentiation ("*" | "/" | "%") exponentiation*
 
-<literal> ::= <string_literal>
-           | <number_literal>
-           | <boolean_literal>
-           | "null"
-           | "undefined"
+exponentiation ::= unary_expression "**" exponentiation | unary_expression
 
-<string_literal> ::= `"` <character>* `"`
-                 | "'" <character>* "'"
+unary_expression ::= ("-" | "+" | "!" | "~") unary_expression
+                  | primary_expression
 
-<number_literal> ::= <integer> | <float>
+primary_expression ::= identifier
+                   | literal
+                   | object_literal
+                   | array_literal
+                   | interpolation_string
+                   | "(" expression ")"
+                   | list_comprehension
+                   | range
+                   | function_calling
 
-<boolean_literal> ::= "true" | "false"
+function_calling ::= identifier tuple_pattern
 
-<integer> ::= [0-9]+
-<float> ::= [0-9]+ "." [0-9]+
-<character> ::= any character
+identifier ::= [a-zA-Z_$][a-zA-Z0-9_$]*
+
+literal ::= number | string | "true" | "false" | "null"
+
+object_literal ::= "{" (property_assignment ("," property_assignment)*)? "}"
+
+property_assignment ::= identifier ":" expression
+
+array_literal ::= "[" (expression ("," expression)*)? "]"
+
+arrow_function ::= parameter "=>" arrow_function_body
+
+parameter ::= identifier | "(" parameter_list ")"
+
+parameter_list ::= parameter ("," parameter)*
+
+arrow_function_body ::= expression | block_statement
+
+variable_declaration ::= ("let" | "const") variable_list
+
+variable_list ::= variable ("," variable)*
+
+variable ::= identifier ("=" expression)?
+
+number ::= dec_number | hex_number | integer | ratio
+
+dec_number ::= ( [0-9]+ ( "_" )? )+ ( "." ( [0-9]+ ( "_" )? ) )?
+
+hex_number ::= "0x" ( [0-9a-fA-F]+ ( "_" )? )+
+
+integer ::= ( [0-9]+ ( "_" )? )+ "n"
+
+ratio ::= ( [0-9]+ ( "_" )? )+ "r" ( [0-9]+ ( "_" )? )+
