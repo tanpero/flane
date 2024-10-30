@@ -11,17 +11,11 @@ enum class Token {
     KEYWORD_CONTINUE_STATEMENT,           // continue_statement
     KEYWORD_RETURN_STATEMENT,             // return_statement
     KEYWORD_EXPRESSION_STATEMENT,         // expression_statement
-    KEYWORD_BLOCK_STATEMENT,              // block_statement
-    KEYWORD_VARIABLE_DECLARATION,         // variable_declaration
+    KEYWORD_LET_DECLARATION,              // let_declaration
+    KEYWORD_CONST_DECLARATION,            // const_declaration
     KEYWORD_FOR,                          // for
     KEYWORD_RANGE,                        // range
     KEYWORD_MATCH_STATEMENT,              // match_statement
-    KEYWORD_MATCH_ARMS,                   // match_arms
-    KEYWORD_MATCH_ARM,                    // match_arm
-    KEYWORD_PATTERN,                      // pattern
-    KEYWORD_TUPLE_PATTERN,                // tuple_pattern
-    KEYWORD_LIST_PATTERN,                 // list_pattern
-    KEYWORD_LIST_COMPREHENSION,           // list_comprehension
     KEYWORD_STRING,                       // string
     KEYWORD_INTERPOLATION_STRING,         // interpolation_string
     KEYWORD_IDENTIFIER,                   // identifier
@@ -30,10 +24,6 @@ enum class Token {
     KEYWORD_PROPERTY_ASSIGNMENT,          // property_assignment
     KEYWORD_ARRAY_LITERAL,                // array_literal
     KEYWORD_ARROW_FUNCTION,               // arrow_function
-    KEYWORD_PARAMETER,                    // parameter
-    KEYWORD_PARAMETER_LIST,               // parameter_list
-    KEYWORD_ARROW_FUNCTION_BODY,          // arrow_function_body
-    KEYWORD_VARIABLE_LIST,                // variable_list
     KEYWORD_NUMBER,                       // number
     KEYWORD_DEC_NUMBER,                   // dec_number
     KEYWORD_HEX_NUMBER,                   // hex_number
