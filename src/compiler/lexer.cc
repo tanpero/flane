@@ -1,28 +1,37 @@
 #include <lexer.hh>
 
-static void expect(Char c, Char exp, size_t offset) {
-    if (c != exp) {
-        std::cerr << "Invalid Character: \"" << c << "\" at position " << offset
-            << ", it should be \"" << exp << "\"." << std::endl;
-        exit(-1);
-    }
-}
+#define current source[position]
 
-static void expect(Char c, bool ok, String exp, size_t offset) {
-    if (!ok) {
-        std::cerr << "Invalid Character: \"" << c << "\" at position " << offset
-            << ", it should be " << exp << "." << std::endl;
-        exit(-1);
-    }
-}
 
 std::vector<Token> Lexer::tokenize()
 {
     while (position < source.length()) {
-        Char c = source[position];
-        position++;
+        if (isBlank())
+        {
+            skipBlank();
+        }
+        else if (std::isdigit(current.toCodepoint()))
+        {
+            if (current == "0" && (source[position + 1] == "x" || source[position + 1] == "X"))
+            {
+                position += 2;
+                if (!std::isxdigit(current.toCodepoint()))
+                {
+
+                }
+            }
+        }
+        else
+        {
+            position++;
+        }
     }
 	return std::vector<Token>();
+}
+
+void Lexer::stop(ErrorInfo info)
+{
+    
 }
 
 void Lexer::skipBlank()
@@ -33,9 +42,88 @@ void Lexer::skipBlank()
     }
 }
 
+expected<Token, ErrorInfo> Lexer::getDecNumber()
+{
+    bool onceDot = false;
+    String left{};
+    String right{};
+    while (std::isdigit(current.toCodepoint()) || current == "_")
+    {
+        if (current != "_")
+        {
+            left += current;
+        }
+        position++;
+    }
+    if (current == "n")
+    {
+        position++;
+        return Token{ TokenType::KEYWORD_INTEGER, left };
+    }
+    if (current == ".")
+    {
+        onceDot = true;
+        right = ".";
+    }
+    while (std::isdigit(current.toCodepoint()) || current == "_")
+    {
+        if (current != "_")
+        {
+            right += current;
+        }
+        position++;
+    }
+    String value = left + right;
+    if (onceDot && !std::isspace(current.toCodepoint()) && current != "r")
+    {
+        return ErrorInfo{ INVALID_OR_UNEXPECTED_TOKEN, x, y, value.length() };
+    }
+    return Token{ TokenType::KEYWORD_DEC_NUMBER, value };
+}
+
+expected<Token, ErrorInfo> Lexer::getHexNumber()
+{
+    bool onceDot = false;
+    String left{};
+    String right{};
+    while (std::isxdigit(current.toCodepoint()) || current == "_")
+    {
+        if (current != "_")
+        {
+            left += current;
+        }
+        position++;
+    }
+    if (current == "n")
+    {
+        position++;
+        return Token{ TokenType::KEYWORD_INTEGER, left };
+    }
+    if (current == ".")
+    {
+        onceDot = true;
+        right = ".";
+    }
+    while (std::isxdigit(current.toCodepoint()) || current == "_")
+    {
+        if (current != "_")
+        {
+            right += current;
+        }
+        position++;
+    }
+    String value = left + right;
+    if (onceDot && !std::isspace(current.toCodepoint()) && current != "r")
+    {
+        return ErrorInfo{ INVALID_OR_UNEXPECTED_TOKEN, x, y, value.length() };
+    }
+    return Token{ TokenType::KEYWORD_DEC_NUMBER, value };
+}
+
+
 bool Lexer::isBlank()
 {
-    switch (source[position].toCodepoint())
+    switch (current.toCodepoint())
     {
     case '\f': case '\n': case '\r': case '\t': case '\v':
     case 0x20: case 0xa0:

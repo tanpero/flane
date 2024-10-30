@@ -84,6 +84,8 @@ struct Token
     TokenType type;
     String value;
 
+    Token(TokenType type, String value) : type(type), value(value) {}
+
     String toString() const;
     bool is(TokenType t) const;
 };
