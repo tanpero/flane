@@ -43,7 +43,11 @@ interpolation ::= "${" expression "}"
 
 expression_statement ::= expression
 
-expression ::= assignment_expression | conditional_expression | arithmetic_expression | literal
+expression ::= assignment_expression | logical_expression | arithmetic_expression | literal
+
+assignment_expression ::= raw_assignment | identifier ( "+=" | "-=" | "*=" | "/=" | "<<=" | ">>=" ) expression
+
+raw_assignment ::= identifier "=" expression
 
 arithmetic_expression ::= term ("+" | "-") term*
                       | term
@@ -104,7 +108,7 @@ variable_declaration ::= ("let" | "const") variable_list
 
 variable_list ::= variable ("," variable)*
 
-variable ::= identifier ("=" expression)?
+variable ::= identifier raw_assignment?
 
 number ::= dec_number | hex_number | integer | ratio
 

@@ -1,61 +1,259 @@
-#include "bigint.h"
 
 #include "bigint.h"
 
-// 初始化BigInt
-void bigInt_init(BigInt *bi) {
-    assert(bi != NULL);
-    bi->digits = (Vector*)malloc(sizeof(Vector));
-    vector_init(bi->digits);
-    bi->sign = 1; // 默认为正数
-}
+typedef struct {
+    uint64_t *elements;
+    size_t size;
+    size_t capacity;
+} Vector;
 
-// 释放BigInt资源
-void bigInt_free(BigInt *bi) {
-    assert(bi != NULL);
-    vector_free(bi->digits);
-    free(bi->digits);
-    bi->digits = NULL;
-    bi->sign = 0; // 重置符号
-}
-
-// 从字符串初始化BigInt
-BigInt* fromString(char* s) {
-    assert(s != NULL);
-    BigInt *bi = (BigInt*)malloc(sizeof(BigInt));
-    bigInt_init(bi);
-    bi->sign = (*s == '-') ? -1 : 1;
-    if (*s == '-') s++; // 跳过负号
-
-    char *tmp = strdup(s);
-    char *token = strtok(tmp, "0123456789");
-    while (token != NULL) {
-        vector_push_back(bi->digits, atoi(token));
-        token = strtok(NULL, "0123456789");
+void vector_init(Vector *v) {
+    v->elements = (uint64_t *)malloc(VECTOR_INIT_CAPACITY * sizeof(uint64_t));
+    if (v->elements == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
     }
-    free(tmp);
-
-    return bi;
+    v->size = 0;
+    v->capacity = VECTOR_INIT_CAPACITY;
 }
 
-// 将BigInt转换为字符串
-char* toString(BigInt n) {
-    assert(n.digits != NULL);
-    int length = vector_size(n.digits);
-    if (length == 0) return strdup("0");
-
-    // 计算所需字符长度（包括符号和结束符'\0'）
-    int totalLength = length * 10; // 每个数字最多10位
-    char *str = (char*)malloc(totalLength + 2); // 加2是为了符号和结束符
-    str[0] = (n.sign == -1) ? '-' : '\0'; // 如果是负数，添加负号
-    int index = (n.sign == -1) ? 1 : 0; // 字符串的起始位置
-
-    for (int i = 0; i < length; ++i) {
-        int digit = vector_at(n.digits, i);
-        sprintf(&str[index], "%d", digit);
-        index += (digit > 9) ? 2 : 1; // 更新索引位置
+void vector_push_back(Vector *v, uint64_t value) {
+    if (v->size >= v->capacity) {
+        size_t new_capacity = v->capacity * 2;
+        uint64_t *new_elements = (uint64_t *)realloc(v->elements, new_capacity * sizeof(uint64_t));
+        if (new_elements == NULL) {
+            fprintf(stderr, "Memory reallocation failed\n");
+            exit(EXIT_FAILURE);
+        }
+        v->elements = new_elements;
+        v->capacity = new_capacity;
     }
-    str[index] = '\0'; // 添加字符串结束符
-
-    return str;
+    v->elements[v->size++] = value;
 }
+
+uint64_t vector_get(const Vector *v, size_t index) {
+    if (index >= v->size) {
+        fprintf(stderr, "Index out of bounds\n");
+        exit(EXIT_FAILURE);
+    }
+    return v->elements[index];
+}
+
+void vector_pop_back(Vector *v) {
+    if (v->size == 0) {
+        fprintf(stderr, "Vector is empty\n");
+        exit(EXIT_FAILURE);
+    }
+    v->size--;
+}
+
+void vector_clear(Vector *v) {
+    free(v->elements);
+    v->elements = NULL;
+    v->size = 0;
+    v->capacity = 0;
+}
+
+void vector_destroy(Vector *v) {
+    vector_clear(v);
+}
+
+typedef struct {
+    Vector digits;
+    char sign; // '1' for positive, -1 for negative
+} BigInt;
+
+void bigint_init(BigInt *bi) {
+    vector_init(&bi->digits);
+    bi->sign = '1'; // default to positive
+}
+
+void bigint_destroy(BigInt *bi) {
+    vector_destroy(&bi->digits);
+}
+
+
+// Helper function to set a digit in the vector
+void vector_set(Vector *v, size_t index, uint64_t value) {
+    if (index >= v->size) {
+        fprintf(stderr, "Index out of bounds\n");
+        exit(EXIT_FAILURE);
+    }
+    v->elements[index] = value;
+}
+
+// Converts a string to a BigInt
+void bigint_from_string(BigInt *bi, const char *str) {
+    bigint_init(bi);
+    bi->sign = (*str == '-') ? -1 : '1';
+    const char *ptr = (*str == '-') ? str + 1 : str;
+    while (*ptr != '\0') {
+        if (!isdigit((unsigned char)*ptr)) {
+            fprintf(stderr, "Invalid character in string\n");
+            exit(EXIT_FAILURE);
+        }
+        uint64_t digit = *ptr - '0';
+        vector_push_back(&bi->digits, digit);
+        ptr++;
+    }
+    // Reverse the digits
+    for (size_t i = 0; i < bi->digits.size / 2; ++i) {
+        uint64_t temp = vector_get(&bi->digits, i);
+        vector_set(&bi->digits, i, vector_get(&bi->digits, bi->digits.size - 1 - i));
+        vector_set(&bi->digits, bi->digits.size - 1 - i, temp);
+    }
+}
+
+// Converts an integer to a BigInt
+void bigint_from_int(BigInt *bi, int value) {
+    bigint_init(bi);
+    bi->sign = (value < 0) ? -1 : '1';
+    uint64_t abs_value = (uint64_t)(value < 0 ? -value : value);
+    do {
+        vector_push_back(&bi->digits, abs_value % 10);
+        abs_value /= 10;
+    } while (abs_value > 0);
+    // Reverse the digits
+    for (size_t i = 0; i < bi->digits.size / 2; ++i) {
+        uint64_t temp = vector_get(&bi->digits, i);
+        vector_set(&bi->digits, i, vector_get(&bi->digits, bi->digits.size - 1 - i));
+        vector_set(&bi->digits, bi->digits.size - 1 - i, temp);
+    }
+}
+
+
+void bigint_print(const BigInt *bi) {
+    if (bi->sign == -1) {
+        printf("-");
+    }
+    for (int i = (int)bi->digits.size - 1; i >= 0; --i) {
+        printf("%llu", vector_get(&bi->digits, i));
+    }
+}
+
+// 比较两个 BigInt 的大小，返回 -1（小于），0（等于），1（大于）
+int bigint_compare(const BigInt *a, const BigInt *b) {
+    if (a->sign != b->sign) {
+        return a->sign == -1 ? -1 : 1;
+    }
+
+    if (a->digits.size != b->digits.size) {
+        return a->digits.size > b->digits.size ? 1 : -1;
+    }
+
+    for (int i = (int)a->digits.size - 1; i >= 0; --i) {
+        uint64_t digit_a = vector_get(&a->digits, i);
+        uint64_t digit_b = vector_get(&b->digits, i);
+        if (digit_a != digit_b) {
+            return digit_a > digit_b ? 1 : -1;
+        }
+    }
+
+    return 0;
+}
+
+// 实现 BigInt 的加法运算
+void bigint_add(BigInt *result, const BigInt *a, const BigInt *b) {
+    if (a->sign != b->sign) {
+        int cmp = bigint_compare(a, b);
+        if (cmp == -1) {
+            bigint_sub(result, b, a);
+            result->sign = b->sign;
+        } else {
+            bigint_sub(result, a, b);
+            result->sign = a->sign;
+        }
+        return;
+    }
+
+    result->sign = a->sign;
+    uint64_t carry = 0;
+    for (size_t i = 0; i < a->digits.size || carry; ++i) {
+        uint64_t digit_a = i < a->digits.size ? vector_get(&a->digits, i) : 0;
+        uint64_t digit_b = i < b->digits.size ? vector_get(&b->digits, i) : 0;
+        uint64_t sum = digit_a + digit_b + carry;
+        carry = sum / 10;
+        vector_push_back(&result->digits, sum % 10);
+    }
+}
+
+// 实现 BigInt 的减法运算
+void bigint_sub(BigInt *result, const BigInt *a, const BigInt *b) {
+    int cmp = bigint_compare(a, b);
+    if (cmp == -1) {
+        bigint_sub(result, b, a);
+        result->sign = -1;
+    } else if (cmp == 0) {
+        vector_init(&result->digits);
+        result->sign = '1';
+    } else {
+        BigInt temp;
+        bigint_init(&temp);
+        bigint_sub(&temp, b, a);
+        result->digits = temp.digits; // 直接赋值，避免重复代码
+        result->sign = a->sign;
+        bigint_destroy(&temp);
+    }
+}
+
+int main() {
+    BigInt a, b, result_add, result_sub, result_add_negative, result_sub_negative;
+
+    // 测试加法
+    bigint_init(&a);
+    bigint_init(&b);
+    bigint_init(&result_add);
+    bigint_init(&result_sub);
+    bigint_init(&result_add_negative);
+    bigint_init(&result_sub_negative);
+
+    bigint_from_string(&a, "12345678901234567890");
+    bigint_from_string(&b, "98765432109876543210");
+
+    // 正数加正数
+    bigint_add(&result_add, &a, &b);
+    printf("Addition (Positive + Positive): ");
+    bigint_print(&result_add);
+    printf("\n");
+
+    // 正数减正数
+    bigint_sub(&result_sub, &a, &b);
+    printf("Subtraction (Positive - Positive): ");
+    bigint_print(&result_sub);
+    printf("\n");
+
+    // 测试负数加正数和减正数
+    bigint_from_string(&a, "-12345678901234567890");
+    bigint_from_string(&b, "98765432109876543210");
+
+    // 负数加正数
+    bigint_add(&result_add_negative, &a, &b);
+    printf("Addition (Negative + Positive): ");
+    bigint_print(&result_add_negative);
+    printf("\n");
+
+    // 负数减正数
+    bigint_sub(&result_sub_negative, &a, &b);
+    printf("Subtraction (Negative - Positive): ");
+    bigint_print(&result_sub_negative);
+    printf("\n");
+
+    // 清理
+    bigint_destroy(&a);
+    bigint_destroy(&b);
+    bigint_destroy(&result_add);
+    bigint_destroy(&result_sub);
+    bigint_destroy(&result_add_negative);
+    bigint_destroy(&result_sub_negative);
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
