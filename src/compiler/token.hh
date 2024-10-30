@@ -1,7 +1,9 @@
 #ifndef _COMPILER_TOKEN_HH_
 #define _COMPILER_TOKEN_HH_
 
-enum class Token {
+#include <string.hh>
+
+enum class TokenType {
     // Keywords
     KEYWORD_IF_STATEMENT,                 // if_statement
     KEYWORD_SWITCH_STATEMENT,             // switch_statement
@@ -76,5 +78,15 @@ enum class Token {
     EOF_TOKEN,                      // End of File Token
     UNKNOWN,
 };
+
+struct Token
+{
+    TokenType type;
+    String value;
+
+    String toString() const;
+    bool is(TokenType t) const;
+};
+
 
 #endif // !_COMPILER_TOKEN_HH_

@@ -1,4 +1,4 @@
-#include "string.hh"
+#include <string.hh>
 
 Char::Char() : data(), size(0) {}
 
