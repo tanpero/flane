@@ -5,19 +5,21 @@
 
 enum class TokenType {
     // Keywords
-    KEYWORD_IF_STATEMENT,                 // if_statement
-    KEYWORD_SWITCH_STATEMENT,             // switch_statement
-    KEYWORD_WHILE_STATEMENT,              // while_statement
-    KEYWORD_FOR_STATEMENT,                // for_statement
-    KEYWORD_BREAK_STATEMENT,              // break_statement
-    KEYWORD_CONTINUE_STATEMENT,           // continue_statement
-    KEYWORD_RETURN_STATEMENT,             // return_statement
-    KEYWORD_EXPRESSION_STATEMENT,         // expression_statement
-    KEYWORD_LET_DECLARATION,              // let_declaration
-    KEYWORD_CONST_DECLARATION,            // const_declaration
-    KEYWORD_FOR,                          // for
-    KEYWORD_RANGE,                        // range
-    KEYWORD_MATCH_STATEMENT,              // match_statement
+    KEYWORD_IF,                 // if_statement
+    KEYWORD_ELSE,
+    KEYWORD_SWITCH,             // switch_statement
+    KEYWORD_CASE,
+    KEYWORD_DEFAULT,
+    KEYWORD_WHILE,              // while_statement
+    KEYWORD_FOR,                // for_statement
+    KEYWORD_BREAK,              // break_statement
+    KEYWORD_CONTINUE,           // continue_statement
+    KEYWORD_RETURN,             // return_statement
+    KEYWORD_EXPRESSION,         // expression_statement
+    KEYWORD_LET_DECLARATION,    // let_declaration
+    KEYWORD_CONST_DECLARATION,  // const_declaration
+    KEYWORD_RANGE,              // range
+    KEYWORD_MATCH,              // match_statement
     KEYWORD_STRING,                       // string
     KEYWORD_INTERPOLATION_STRING,         // interpolation_string
     KEYWORD_IDENTIFIER,                   // identifier

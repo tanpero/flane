@@ -14,10 +14,9 @@ std::unordered_map<ERROR_TYPE, String> error_map{
 };
 
 struct ErrorInfo {
-	String info;
-	ErrorInfo(ERROR_TYPE e, size_t x, size_t y, size_t length) {
-		info = error_map[e];
-	}
+	ERROR_TYPE type;
+	ErrorInfo(ERROR_TYPE e, size_t x, size_t y, size_t length)
+		: x(x), y(y), length(length), type(e) {}
 	size_t x, y, length;
 };
 

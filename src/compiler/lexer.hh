@@ -1,9 +1,14 @@
 #ifndef _COMPILER_LEXER_HH_
 #define _COMPILER_LEXER_HH_
 
+#include <map>
+#include <set>
 #include <token.hh>
 #include <expected.hh>
 #include <error.hh>
+
+#define RETURN_AT_TAIL /* When the function returns, position will be at the last character of token */
+#define RETURN_AT_NEXT /* When the function returns, position will be at the first character after token */
 
 class Lexer {
 	String source;
@@ -13,7 +18,6 @@ class Lexer {
 
 	size_t deepOfInterpolation;
 
-	size_t x, y;
 
 public:
 	Lexer(const String& source)
@@ -21,19 +25,21 @@ public:
 		position(0),
 		readPosition(0),
 		tokens({}),
-		deepOfInterpolation(0),
-		x(0), y(0)
+		deepOfInterpolation(0)
 	{}
 
 	std::vector<Token> tokenize();
 	void stop(ErrorInfo info);
+	void push(expected<Token, ErrorInfo> t);
 
 	void skipBlank();
-	expected<Token, ErrorInfo> getDecNumber();
-	expected<Token, ErrorInfo> getHexNumber();
+	RETURN_AT_NEXT expected<Token, ErrorInfo> getDecNumber();
+	RETURN_AT_NEXT expected<Token, ErrorInfo> getHexNumber();
+	RETURN_AT_NEXT expected<Token, ErrorInfo> getWord();
 
 private:
 	bool isBlank();
+	bool isWord(bool includeNumber = true);
 };
 
 
