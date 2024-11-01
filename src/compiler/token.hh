@@ -28,6 +28,7 @@ enum class TokenType {
     KEYWORD_PROPERTY_ASSIGNMENT,          // property_assignment
     KEYWORD_ARRAY_LITERAL,                // array_literal
     KEYWORD_ARROW_FUNCTION,               // arrow_function
+    KEYWORD_ARROW_CASE,                   // arrow_case (in match)
     KEYWORD_NUMBER,                       // number
     KEYWORD_DEC_NUMBER,                   // dec_number
     KEYWORD_HEX_NUMBER,                   // hex_number
@@ -57,6 +58,15 @@ enum class TokenType {
     OPERATOR_LESS_THAN_OR_EQUAL,      // <=
     OPERATOR_GREATER_THAN_OR_EQUAL,   // >=
     OPERATOR_EXPONENT,                // **
+    OPERATOR_LOGICAL_AND,
+    OPERATOR_LOGICAL_OR,
+    OPERATOR_LOGICAL_NOT,
+    OPERATOR_BITWISE_AND,
+    OPERATOR_BITWISE_OR,
+    OPERATOR_BITWISE_XOR,
+    OPERATOR_BITWISE_NOT,
+    OPERATOR_QUESTION, 
+    OPERATOR_COLON,
 
     // Delimiters
     DELIMITER_OPEN_PARENTHESIS,       // (

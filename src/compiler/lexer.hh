@@ -36,10 +36,12 @@ public:
 	RETURN_AT_NEXT expected<Token, ErrorInfo> getDecNumber();
 	RETURN_AT_NEXT expected<Token, ErrorInfo> getHexNumber();
 	RETURN_AT_NEXT expected<Token, ErrorInfo> getWord();
+	RETURN_AT_NEXT expected<Token, ErrorInfo> getOperator();
 
 private:
 	bool isBlank();
 	bool isWord(bool includeNumber = true);
+	bool isOperatorStart();
 };
 
 

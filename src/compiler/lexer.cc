@@ -36,6 +36,41 @@ static std::map<String, TokenType> keywords = {
     { "range", TokenType::KEYWORD_RANGE },
 };
 
+static std::map<String, TokenType> operatorMap = {
+    { "+", TokenType::OPERATOR_ADD },
+    { "-", TokenType::OPERATOR_SUBTRACT },
+    { "*", TokenType::OPERATOR_MULTIPLY },
+    { "/", TokenType::OPERATOR_DIVIDE },
+    { "%", TokenType::OPERATOR_MODULUS },
+    { "=", TokenType::OPERATOR_ASSIGN },
+    { "+=", TokenType::OPERATOR_ADD_ASSIGN },
+    { "-=", TokenType::OPERATOR_SUBTRACT_ASSIGN },
+    { "*=", TokenType::OPERATOR_MULTIPLY_ASSIGN },
+    { "/=", TokenType::OPERATOR_DIVIDE_ASSIGN },
+    { "%=", TokenType::OPERATOR_MODULUS_ASSIGN },
+    { "<<", TokenType::OPERATOR_LEFT_SHIFT },
+    { ">>", TokenType::OPERATOR_RIGHT_SHIFT },
+    { "<<=", TokenType::OPERATOR_LEFT_SHIFT_ASSIGN },
+    { ">>=", TokenType::OPERATOR_RIGHT_SHIFT_ASSIGN },
+    { "==", TokenType::OPERATOR_EQUALS },
+    { "!=", TokenType::OPERATOR_NOT_EQUALS },
+    { "<", TokenType::OPERATOR_LESS_THAN },
+    { ">", TokenType::OPERATOR_GREATER_THAN },
+    { "<=", TokenType::OPERATOR_LESS_THAN_OR_EQUAL },
+    { ">=", TokenType::OPERATOR_GREATER_THAN_OR_EQUAL },
+    { "**", TokenType::OPERATOR_EXPONENT },
+    { "&&", TokenType::OPERATOR_LOGICAL_AND },
+    { "||", TokenType::OPERATOR_LOGICAL_OR },
+    { "!", TokenType::OPERATOR_LOGICAL_NOT },
+    { "&", TokenType::OPERATOR_BITWISE_AND },
+    { "|", TokenType::OPERATOR_BITWISE_OR },
+    { "^", TokenType::OPERATOR_BITWISE_XOR },
+    { "~", TokenType::OPERATOR_BITWISE_NOT },
+    { "?", TokenType::OPERATOR_QUESTION },
+    { ":", TokenType::OPERATOR_COLON },
+    { "->", TokenType::KEYWORD_ARROW_CASE },
+    { "=>", TokenType::KEYWORD_ARROW_FUNCTION },
+};
 
 std::vector<Token> Lexer::tokenize()
 {
@@ -236,6 +271,22 @@ RETURN_AT_NEXT expected<Token, ErrorInfo> Lexer::getWord()
     return Token{ TokenType::IDENTIFIER, name };
 }
 
+RETURN_AT_NEXT expected<Token, ErrorInfo> Lexer::getOperator() {
+    String op;
+    while (!std::isspace(current.toCodepoint())
+            && !std::isalnum(current.toCodepoint()) && isOperatorStart()) {
+        op += current;
+        position++;
+    }
+    if (operatorMap.find(op) != operatorMap.end()) {
+        return Token{ operatorMap[op], op };
+    }
+    else {
+        auto _ = findLineAndColumn(source, position);
+        return ErrorInfo{ INVALID_OR_UNEXPECTED_TOKEN, _.first, _.second, op.length() };
+    }
+}
+
 
 bool Lexer::isBlank()
 {
@@ -255,4 +306,15 @@ bool Lexer::isWord(bool includeNumber)
 {
     return (includeNumber ? std::isalnum(current.toCodepoint()) : std::isalpha(current.toCodepoint()))
         || (current == '_') || (current == '$');
+}
+
+bool Lexer::isOperatorStart() {
+    switch (current.toCodepoint()) {
+    case '+': case '-': case '*': case '/': case '=':
+    case '|': case '~': case '!': case '%': case '^':
+    case '&': case '?': case '<': case '>':
+        return true;
+    default:
+        return false;
+    }
 }
