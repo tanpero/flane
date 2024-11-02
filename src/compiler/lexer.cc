@@ -85,6 +85,10 @@ std::vector<Token> Lexer::tokenize()
         {
             push(getWord());
         }
+        else if (isOperatorStart())
+        {
+            push(getOperator());
+        }
 
         // Number
         else if (std::isdigit(current.toCodepoint()))
@@ -107,6 +111,35 @@ std::vector<Token> Lexer::tokenize()
         }
 
         // String
+        else if (current == '"')
+        {
+            position++;
+            String strValue;
+            while (current != '"' && position < source.length()) {
+                if (current == '\\' && position + 1 < source.length()) {
+                    position++;
+                    Char nextChar = current;
+                    switch (nextChar.toCodepoint()) {
+                    case 'n': strValue += '\n'; break;
+                    case 't': strValue += '\t'; break;
+                    case 'r': strValue += '\r'; break;
+                    case '\\': strValue += '\\'; break;
+                    case '"': strValue += '"'; break;
+                    default: strValue += nextChar; break;
+                    }
+                }
+                else {
+                    strValue += current;
+                }
+                position++;
+            }
+            if (current != '"') {
+                auto _ = findLineAndColumn(source, position);
+                stop({ INVALID_OR_UNEXPECTED_TOKEN, _.first, _.second, 1 });
+            }
+            position++;
+            push(Token(TokenType::KEYWORD_STRING, strValue));
+        }
         
         else
         {
