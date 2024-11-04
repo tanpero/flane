@@ -320,6 +320,66 @@ RETURN_AT_NEXT expected<Token, ErrorInfo> Lexer::getOperator() {
     }
 }
 
+RETURN_AT_TAIL void Lexer::tokenizeTemplateString() {
+    String strValue;
+    while (position < source.length()) {
+        Char current = source[position];
+        if (current == '`' && isCurrentCharContainedOfString) {
+            if (deepOfInterpolation == 0) {
+                pushStringToken(strValue);
+                return;
+            }
+        }
+        else if (current == '{' && source[position + 1] == '{') {
+            if (deepOfInterpolation == 0) {
+                pushStringToken(strValue);
+                tokens.push_back(Token(TokenType::OPERATOR_INTERPOLATION_START, "{{"));
+                isCurrentCharContainedOfString = false;
+                deepOfInterpolation++;
+                position += 2; // Skip {{
+                tokenizeTemplateString(); // Recursive call to tokenize the expression
+                position += 2; // Skip }}
+                continue;
+            }
+            else {
+                strValue += "{{";
+                position += 2;
+            }
+        }
+        else if (current == '}' && source[position + 1] == '}') {
+            if (deepOfInterpolation > 0) {
+                deepOfInterpolation--;
+                if (deepOfInterpolation == 0) {
+                    tokens.push_back(Token(TokenType::OPERATOR_INTERPOLATION_END, "}}"));
+                    isCurrentCharContainedOfString = true;
+                    position += 2; // Skip }}
+                    continue;
+                }
+                else {
+                    strValue += "}}";
+                    position += 2;
+                }
+            }
+            else {
+                strValue += "}}";
+                position += 2;
+            }
+        }
+        else if (current == '\n') {
+            strValue += current;
+            position++;
+        }
+        else {
+            strValue += current;
+            position++;
+        }
+    }
+    if (!strValue.empty()) {
+        pushStringToken(strValue);
+    }
+}
+
+
 
 bool Lexer::isBlank()
 {

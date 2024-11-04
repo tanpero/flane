@@ -17,7 +17,9 @@ class Lexer {
 	std::vector<Token> tokens;
 
 	size_t deepOfInterpolation;
+	bool isCurrentCharContainedOfString;
 
+	String stringContent;
 
 public:
 	Lexer(const String& source)
@@ -25,7 +27,9 @@ public:
 		position(0),
 		readPosition(0),
 		tokens({}),
-		deepOfInterpolation(0)
+		deepOfInterpolation(0),
+		isCurrentCharContainedOfString(false),
+		stringContent("")
 	{}
 
 	std::vector<Token> tokenize();
@@ -37,11 +41,13 @@ public:
 	RETURN_AT_NEXT expected<Token, ErrorInfo> getHexNumber();
 	RETURN_AT_NEXT expected<Token, ErrorInfo> getWord();
 	RETURN_AT_NEXT expected<Token, ErrorInfo> getOperator();
+	RETURN_AT_TAIL void tokenizeTemplateString();
 
 private:
 	bool isBlank();
 	bool isWord(bool includeNumber = true);
 	bool isOperatorStart();
+	void pushStringToken(const String& strValue);
 };
 
 
