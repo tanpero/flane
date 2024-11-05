@@ -323,7 +323,6 @@ RETURN_AT_NEXT expected<Token, ErrorInfo> Lexer::getOperator() {
 RETURN_AT_TAIL void Lexer::tokenizeTemplateString() {
     String strValue;
     while (position < source.length()) {
-        Char current = source[position];
         if (current == '`' && isCurrentCharContainedOfString) {
             if (deepOfInterpolation == 0) {
                 pushStringToken(strValue);
@@ -333,7 +332,8 @@ RETURN_AT_TAIL void Lexer::tokenizeTemplateString() {
         else if (current == '{' && source[position + 1] == '{') {
             if (deepOfInterpolation == 0) {
                 pushStringToken(strValue);
-                tokens.push_back(Token(TokenType::OPERATOR_INTERPOLATION_START, "{{"));
+                tokens.push_back(Token(TokenType::OPERATOR_ADD, "+"));
+                tokens.push_back(Token(TokenType::DELIMITER_OPEN_PARENTHESIS, "("));
                 isCurrentCharContainedOfString = false;
                 deepOfInterpolation++;
                 position += 2; // Skip {{
@@ -350,7 +350,8 @@ RETURN_AT_TAIL void Lexer::tokenizeTemplateString() {
             if (deepOfInterpolation > 0) {
                 deepOfInterpolation--;
                 if (deepOfInterpolation == 0) {
-                    tokens.push_back(Token(TokenType::OPERATOR_INTERPOLATION_END, "}}"));
+                    tokens.push_back(Token(TokenType::DELIMITER_CLOSE_PARENTHESIS, ")"));
+                    tokens.push_back(Token(TokenType::OPERATOR_ADD, "+"));
                     isCurrentCharContainedOfString = true;
                     position += 2; // Skip }}
                     continue;
